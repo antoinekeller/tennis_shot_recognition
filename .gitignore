@@ -1,1 +1,3 @@
 movenet.tflite
+*.mp4
+annotation*.csv

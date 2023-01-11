@@ -1,5 +1,7 @@
 # tennis_shot_recognition
 
+## Movenet
+
 To download the movenet_lightning_f16 neural network from Tensorflow, run :
 
 ```
@@ -19,5 +21,26 @@ To get tennis videos, you can simply download them from any youtube converter, e
 <img src="res/movenet_example.gif"  width="800" alt>
 </p>
 
+## Tennis shot annotation
+
+To make your annotation, you can use the `annotator.py` file, e.g
+
+```
+$ python annotator.py dataset/nadal/nadal.mp4 
+```
+
+which will output a csv file, named `annotation_nadal.csv` containing something like this:
+
+```
+Shot,FrameId
+serve,257
+forehand,294
+backhand,329
+forehand,374
+forehand,415
+backhand,450
+```
+
+where each line corresponds to a shot at a specified frame.
 
 
