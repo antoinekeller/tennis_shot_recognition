@@ -123,3 +123,12 @@ python visualize_features.py shots/forehand_001.csv
 </p>
 
 
+## Training with a fully connected layers neural network
+
+See SingleFrameShotClassifier.ipynb
+
+In the notebook, we load our annotated datasets (csv files containing 1 second shot) with the position of each key points of the player pose. Each sample is here a set of features from a single frame (instantaneous). Possible classes are :
+- backhand
+- forehand
+- neutral (or idle)
+- serve
