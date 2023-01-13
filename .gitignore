@@ -3,3 +3,5 @@ movenet.tflite
 annotation*.csv
 weights.h5
 weights.hdf5
+.ipynb_checkpoints/
+__pycache__/

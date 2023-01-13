@@ -14,6 +14,7 @@ import pandas as pd
 from tensorflow import keras
 
 from extract_human_pose import HumanPoseExtractor
+from track_and_classify_with_rnn import GT, draw_probs
 
 physical_devices = tf.config.experimental.list_physical_devices("GPU")
 print(tf.config.experimental.list_physical_devices("GPU"))
@@ -95,126 +96,6 @@ class ShotCounter:
                 self.frames_since_last_shot = 0
                 self.results.append({"FrameID": frame_id, "Shot": self.last_shot})
 
-    def draw_probs(self, frame):
-        """
-        Draw probability with vertical bars
-        """
-
-        probs = np.mean(self.probs, axis=0)
-        cv2.putText(
-            frame,
-            "S",
-            (self.TEXT_ORIGIN_X, 230),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 0, 255),
-            thickness=3,
-        )
-        cv2.putText(
-            frame,
-            "B",
-            (self.TEXT_ORIGIN_X + self.SPACE_BETWEEN_BARS, 230),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 0, 255),
-            thickness=3,
-        )
-        cv2.putText(
-            frame,
-            "N",
-            (self.TEXT_ORIGIN_X + self.SPACE_BETWEEN_BARS * 2, 230),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 0, 255),
-            thickness=3,
-        )
-        cv2.putText(
-            frame,
-            "F",
-            (self.TEXT_ORIGIN_X + self.SPACE_BETWEEN_BARS * 3, 230),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 0, 255),
-            thickness=3,
-        )
-        cv2.rectangle(
-            frame,
-            (
-                self.BAR_ORIGIN_X,
-                int(
-                    self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR - self.BAR_HEIGHT * probs[3]
-                ),
-            ),
-            (
-                self.BAR_ORIGIN_X + self.BAR_WIDTH,
-                self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR,
-            ),
-            color=(0, 0, 255),
-            thickness=-1,
-        )
-
-        cv2.rectangle(
-            frame,
-            (
-                self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS,
-                int(
-                    self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR - self.BAR_HEIGHT * probs[0]
-                ),
-            ),
-            (
-                self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS + self.BAR_WIDTH,
-                self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR,
-            ),
-            color=(0, 0, 255),
-            thickness=-1,
-        )
-        cv2.rectangle(
-            frame,
-            (
-                self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS * 2,
-                int(
-                    self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR - self.BAR_HEIGHT * probs[2]
-                ),
-            ),
-            (
-                self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS * 2 + self.BAR_WIDTH,
-                self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR,
-            ),
-            color=(0, 0, 255),
-            thickness=-1,
-        )
-        cv2.rectangle(
-            frame,
-            (
-                self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS * 3,
-                int(
-                    self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR - self.BAR_HEIGHT * probs[1]
-                ),
-            ),
-            (
-                self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS * 3 + self.BAR_WIDTH,
-                self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR,
-            ),
-            color=(0, 0, 255),
-            thickness=-1,
-        )
-        for i in range(4):
-            cv2.rectangle(
-                frame,
-                (
-                    self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS * i,
-                    int(self.MARGIN_ABOVE_BAR),
-                ),
-                (
-                    self.BAR_ORIGIN_X + self.SPACE_BETWEEN_BARS * i + self.BAR_WIDTH,
-                    self.BAR_HEIGHT + self.MARGIN_ABOVE_BAR,
-                ),
-                color=(255, 255, 255),
-                thickness=1,
-            )
-
-        return frame
-
     def display(self, frame):
         """
         Display shot count
@@ -252,62 +133,6 @@ class ShotCounter:
             color=(0, 255, 0)
             if (self.last_shot == "serve" and self.frames_since_last_shot < 30)
             else (0, 0, 255),
-            thickness=2,
-        )
-
-
-class GT:
-    """
-    Eventually pass Ground Truth to compare it to your results
-    GT is the same file that you did in the annotation step (annotator.py)
-    """
-
-    def __init__(self, path_to_annotation):
-        self.shots = pd.read_csv(path_to_annotation)
-        self.current_row_in_shots = 0
-        self.nb_backhands = 0
-        self.nb_forehands = 0
-        self.nb_serves = 0
-        self.last_shot = "neutral"
-
-    def display(self, frame, frame_id):
-        """Display just like the shot counter"""
-        if self.current_row_in_shots < len(self.shots):
-            if frame_id == self.shots.iloc[self.current_row_in_shots]["FrameId"]:
-                if self.shots.iloc[self.current_row_in_shots]["Shot"] == "backhand":
-                    self.nb_backhands += 1
-                elif self.shots.iloc[self.current_row_in_shots]["Shot"] == "forehand":
-                    self.nb_forehands += 1
-                elif self.shots.iloc[self.current_row_in_shots]["Shot"] == "serve":
-                    self.nb_serves += 1
-                self.last_shot = self.shots.iloc[self.current_row_in_shots]["Shot"]
-                self.current_row_in_shots += 1
-
-        cv2.putText(
-            frame,
-            f"Backhands = {self.nb_backhands}",
-            (frame.shape[1] - 300, frame.shape[0] - 100),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 0, 255) if self.last_shot != "backhand" else (0, 255, 0),
-            thickness=2,
-        )
-        cv2.putText(
-            frame,
-            f"Forehands = {self.nb_forehands}",
-            (frame.shape[1] - 300, frame.shape[0] - 60),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 0, 255) if self.last_shot != "forehand" else (0, 255, 0),
-            thickness=2,
-        )
-        cv2.putText(
-            frame,
-            f"Serves = {self.nb_serves}",
-            (frame.shape[1] - 300, frame.shape[0] - 20),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 0, 255) if self.last_shot != "serve" else (0, 255, 0),
             thickness=2,
         )
 
@@ -420,7 +245,7 @@ if __name__ == "__main__":
 
         shot_counter.update(probs, FRAME_ID)
 
-        shot_counter.draw_probs(frame)
+        draw_probs(frame, np.mean(shot_counter.probs, axis=0))
         shot_counter.display(frame)
         # draw_probs(frame, [probs[0], probs[1], probs[2], 0])
 
