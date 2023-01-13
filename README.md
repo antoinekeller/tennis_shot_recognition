@@ -163,7 +163,7 @@ python track_and_classify_frame_by_frame.py path/to/dimitrov_alcaraz.mp4 tennis_
 Same priciple than before. But not we do an averaging of the shot probabilities over a sliding window of 10 frames. We add a basic shot counter to be able to detect (and not only classify) shots.
 
 <p>
-<em>Probabilities at each frame</em></br>
+<em>Averaging and shot counter</em></br>
 <img src="res/example_single_frame_with_averaging_and_basic_counter.gif"  width="800" alt>
 </p>
 
@@ -171,4 +171,17 @@ Proabilities are now smoother, and it s possible to have a decently working shot
 
 ## Training with a RNN (Recurrent Neural Network)
 
-See 
+See *RNNShotClassifier.ipynb*
+
+In the notebook, we load our annotated datasets (csv files containing 1 second shot) as a temporal sequence of the human pose. We then use keras GRU recurrent neural network to train it.
+
+I get close to ~100% accuracy.
+
+## Inference on a tennis video
+
+<p>
+<em>Probabilities with RNN</em></br>
+<img src="res/example_rnn.gif"  width="800" alt>
+</p>
+
+It runs faster than real-time on my GPU.
