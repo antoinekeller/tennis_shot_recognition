@@ -125,10 +125,50 @@ python visualize_features.py shots/forehand_001.csv
 
 ## Training with a fully connected layers neural network
 
-See SingleFrameShotClassifier.ipynb
+See *SingleFrameShotClassifier.ipynb*
 
 In the notebook, we load our annotated datasets (csv files containing 1 second shot) with the position of each key points of the player pose. Each sample is here a set of features from a single frame (instantaneous). Possible classes are :
 - backhand
 - forehand
 - neutral (or idle)
 - serve
+
+With a fully connected layers, we can reach a validation accuracy of ~80% (see also the confusion matrix).
+
+And we export the neural network to *tennis_fully_connected.h5*
+
+## Display raw results (ShotCounter.nb_history = 1)
+
+```
+python track_and_classify_frame_by_frame.py path/to/dimitrov_alcaraz.mp4 tennis_fully_connected.h5 
+```
+
+This will read the video of your choice, infer the movenet then feed it to your trained network at each frame. Probabilities of each class are displayed as vertical bars.
+
+<p>
+<em>Probabilities at each frame</em></br>
+<img src="res/example_single_frame.gif"  width="800" alt>
+</p>
+
+where classes are S(erve), B(ackhand), N(eutral) and F(orehand).
+
+As you can see, classification is very unstable on a single frame.
+
+## Use an averager and a basic shot counter
+
+```
+python track_and_classify_frame_by_frame.py path/to/dimitrov_alcaraz.mp4 tennis_fully_connected.h5 
+```
+
+Same priciple than before. But not we do an averaging of the shot probabilities over a sliding window of 10 frames. We add a basic shot counter to be able to detect (and not only classify) shots.
+
+<p>
+<em>Probabilities at each frame</em></br>
+<img src="res/example_single_frame_with_averaging_and_basic_counter.gif"  width="800" alt>
+</p>
+
+Proabilities are now smoother, and it s possible to have a decently working shot counter.
+
+## Training with a RNN (Recurrent Neural Network)
+
+See 
