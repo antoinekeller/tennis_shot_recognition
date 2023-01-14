@@ -51,7 +51,7 @@ class ShotCounter:
             self.probs[0:3] = probs
 
         if (
-            probs[0] > 0.9
+            probs[0] > 0.98
             and self.frames_since_last_shot > self.MIN_FRAMES_BETWEEN_SHOTS
         ):
             self.nb_backhands += 1
@@ -59,7 +59,7 @@ class ShotCounter:
             self.frames_since_last_shot = 0
             self.results.append({"FrameID": frame_id, "Shot": self.last_shot})
         elif (
-            probs[1] > 0.9
+            probs[1] > 0.98
             and self.frames_since_last_shot > self.MIN_FRAMES_BETWEEN_SHOTS
         ):
             self.nb_forehands += 1
@@ -68,7 +68,7 @@ class ShotCounter:
             self.results.append({"FrameID": frame_id, "Shot": self.last_shot})
         elif (
             len(probs) > 3
-            and probs[3] > 0.5
+            and probs[3] > 0.98
             and self.frames_since_last_shot > self.MIN_FRAMES_BETWEEN_SHOTS
         ):
             self.nb_serves += 1
@@ -461,14 +461,14 @@ if __name__ == "__main__":
         ):
             human_pose_extractor.roi.draw_shot(frame, shot_counter.last_shot)
 
-        cv2.imshow("Frame", frame)
+        # cv2.imshow("Frame", frame)
         human_pose_extractor.roi.update(human_pose_extractor.keypoints_pixels_frame)
 
-        # cv2.imwrite(f"demo/image_{frame_id:04d}.png", frame)
+        cv2.imwrite(f"videos/image_{FRAME_ID:05d}.png", frame)
 
-        k = cv2.waitKey(1)
-        if k == 27:
-            break
+        # k = cv2.waitKey(0)
+        # if k == 27:
+        #    break
 
     cap.release()
     cv2.destroyAllWindows()

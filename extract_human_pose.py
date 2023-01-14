@@ -330,8 +330,12 @@ if __name__ == "__main__":
 
     human_pose_extractor = HumanPoseExtractor(frame.shape)
 
+    FRAME_ID = 0
+
     while cap.isOpened():
         ret, frame = cap.read()
+
+        FRAME_ID += 1
 
         human_pose_extractor.extract(frame)
 
@@ -347,6 +351,8 @@ if __name__ == "__main__":
         human_pose_extractor.draw_results_frame(frame)
         cv2.imshow("Frame", frame)
         human_pose_extractor.roi.update(human_pose_extractor.keypoints_pixels_frame)
+
+        # cv2.imwrite(f"videos/image_{FRAME_ID:05d}.png", frame)
 
         k = cv2.waitKey(1)
         if k == 27:

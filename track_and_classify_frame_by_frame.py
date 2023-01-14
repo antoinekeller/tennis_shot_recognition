@@ -254,10 +254,18 @@ if __name__ == "__main__":
 
         # Display results on original frame
         human_pose_extractor.draw_results_frame(frame)
+        if (
+            shot_counter.frames_since_last_shot < 30
+            and shot_counter.last_shot != "neutral"
+        ):
+            human_pose_extractor.roi.draw_shot(frame, shot_counter.last_shot)
+
+        # Display results on original frame
+        human_pose_extractor.draw_results_frame(frame)
         cv2.imshow("Frame", frame)
         human_pose_extractor.roi.update(human_pose_extractor.keypoints_pixels_frame)
 
-        # cv2.imwrite(f"demo/image_{FRAME_ID:04d}.png", frame)
+        # cv2.imwrite(f"videos/image_{FRAME_ID:05d}.png", frame)
 
         k = cv2.waitKey(0)
         if k == 27:
